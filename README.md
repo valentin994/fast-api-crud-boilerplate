@@ -6,5 +6,6 @@ Starting point for CRUD server with basic authentication with tokens and db conn
 ## To-do:
 - [ ] User Login/Registration
 - [ ] Tokens
-- [ ] MongoDB support
+- [x] MongoDB support
+- [ ] CRUD Operations
 
