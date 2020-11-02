@@ -1,7 +1,7 @@
-from pymongo import MongoClient
+import motor.motor_asyncio
 from bson.objectid import ObjectId
 
-client = MongoClient()
+client = motor.motor_asyncio.AsyncIOMotorClient()
 
 users_db = client.users
 users_collection = users_db["users"]
