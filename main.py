@@ -9,11 +9,15 @@ app = FastAPI()
 
 @app.get("/")
 async def read_root():
-    return {"Hello": "World"}
+    return {
+        "routes": [
+            {"GET":["/user"]},
+            {"POST":["/user"]}
+        ]
+    }
 
-
-@app.get("/users")
-async def get_users(response_description="Users fetched"):
+@app.get("/user", response_description="Users fetched")
+async def get_users():
     users = await get_all_users()
     if users:
         return ResponseModel(users, "Successfully fetched users")
@@ -25,10 +29,9 @@ async def get_users(response_description="Users fetched"):
 
 #update user
 
-@app.post("/users")
+@app.post("/user", response_description="User registered")
 async def register_user(user: User):
-    return {'data': user,
-            'msg': f'Successfully registered {user.name}'}
+    return ResponseModel(user, "User added successfully")
 
 
 if __name__ == "__main__":

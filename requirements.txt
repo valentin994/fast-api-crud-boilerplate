@@ -1,0 +1,12 @@
+click==7.1.2
+dnspython==2.0.0
+email-validator==1.1.1
+fastapi==0.61.1
+h11==0.11.0
+idna==2.10
+motor==2.3.0
+pydantic==1.7.2
+pymongo==3.11.0
+starlette==0.13.6
+typing-extensions==3.7.4.3
+uvicorn==0.12.2
