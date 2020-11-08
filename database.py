@@ -1,23 +1,38 @@
-import motor.motor_asyncio
+from pymongo import MongoClient
 from bson.objectid import ObjectId
 from models import User
+from pymongo.errors import DuplicateKeyError
 
-client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://localhost:27017")
+client = MongoClient("mongodb://localhost:27017")
 
-users_db = client.marketplace_services
+users_db = client.users
 users_collection = users_db.get_collection("users")
+
+#Run only once for setup
+#users_collection.create_index("email", unique=True)
+
 
 # User DB CRUD Operations
 
-async def get_all_users():
-    print("hey")
+def get_all_users():
     users = []
-    async for user in users_collection.find():
-        users.append(user)
+    for user in users_collection.find():
+        users.append(user_helper(user))
     return users
 
-async def register_user(user: User):
-    users_collection.create_index("email")
-    user = await users_collection.insert_one(user.dict())
-    print(user.dict())
-    return user
+def register_user(user) -> dict: 
+    try:   
+        new_user = users_collection.insert_one(user)
+        added_user = users_collection.find_one({"_id": new_user.inserted_id})
+    except DuplicateKeyError:
+        return "Email already exists"
+    return user_helper(added_user)
+
+
+def user_helper(user) -> dict:
+    return {
+        "id": str(user["_id"]),
+        "name": user["name"],
+        "email": user["email"],
+        "password": user["password"]
+    }

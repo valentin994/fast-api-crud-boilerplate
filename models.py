@@ -1,17 +1,17 @@
-from pydantic import BaseModel, SecretStr, EmailStr
+from pydantic import BaseModel, SecretStr, EmailStr, Field
 
 
 class User(BaseModel):
-    name: str
-    email: EmailStr
-    password: SecretStr
+    name: str = Field(...)
+    email: EmailStr = Field(...)
+    password: SecretStr = Field(...)
 
     class Config:
         schema_extra = {
             "example": {
                 "name": "John Doe",
                 "email": "johndoes@example.com",
-                "password": "******"
+                "password": "password"
             }
         }
 
@@ -19,7 +19,7 @@ class User(BaseModel):
 def ResponseModel(data, message):
     return {
         "data": [data],
-        "code": 200,
+        "status_code": 200,
         "message": message
     }
 
@@ -27,6 +27,6 @@ def ResponseModel(data, message):
 def ErrorResponseModel(error, code, message):
     return {
         "error": error,
-        "code": code,
+        "status_code": code,
         "message": message
     }

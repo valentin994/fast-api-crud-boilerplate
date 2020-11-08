@@ -9,13 +9,13 @@ Other database support is planned.
 Available routes:
 
 - GET "/user" -> Fetches all users from the database
-- POST "/user" -> Register an user with unique email required
+- POST "/user/" -> Register an user with unique email required
 
 ## To-do:
 - [ ] User Login/Registration
 - [ ] Tokens
-- [ ] CRUD Operations
-- [ ] Automated Testing
+- [ ] CRUD Operations for Users  <br> 1. ~~Create User~~ <br> 2. ~~Get All Users~~ <br> 3. Find User by e-mail <br> 4. Delete User <br> 5. Update User
+- [ ] API Testing
 - [x] MongoDB support
 
  
