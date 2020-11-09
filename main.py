@@ -58,8 +58,9 @@ async def add_user(user: User):
         return ErrorResponseModel("An error occurred", 404, "This email adress is already in use.")
     return ResponseModel(new_user, "User added successfully")
 
-#get one user
-
+@app.get("/user/{email}")
+async def get_one_user():
+    return 1
 #delete user
 
 #update user
