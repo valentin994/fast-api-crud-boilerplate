@@ -21,6 +21,7 @@ Available routes:
 - [ ] API Testing
 - [ ] Deploy on HEROKU
 - [ ] Pagination
+- [ ] Kafka
 - [x] MongoDB support
 
  
