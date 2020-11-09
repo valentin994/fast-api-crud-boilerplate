@@ -4,10 +4,10 @@ from fastapi.encoders import jsonable_encoder
 from models import (User, 
                     ResponseModel,
                     ErrorResponseModel)
-
 from database import (get_all_users,
                       register_user,
-                      )
+                      find_user,
+                      remove_user)
 from fastapi.responses import HTMLResponse
 
 app = FastAPI()
@@ -34,8 +34,10 @@ async def homepage():
                 <p id="title" class="text-success"> List of routes</p>
                 <div class="container">
                     <ul class="list-group">
-                        <li class="list-group-item list-group-item-success">GET "/users" -> Fetches all users from database</li>
-                        <li class="list-group-item list-group-item-success">POST "/users/" -> Registers a user, return 404 if user already exists</li>
+                        <li class="list-group-item list-group-item-success">GET "/user" -> Fetches all users from database</li>
+                        <li class="list-group-item list-group-item-success">POST "/user/" -> Registers a user, return 404 if user already exists</li>
+                        <li class="list-group-item list-group-item-success">GET "/user/{email}" -> Find user by email, if there is no registered user with that email return 404.</li>
+                        <li class="list-group-item list-group-item-success">DELETE "/user/{email}" -> Delete user by email, if there is no registered user with that email return 404.</li>
                     </ul> 
                 </div>
             </div>
@@ -54,14 +56,23 @@ async def get_users():
 @app.post("/user/", response_description="User registered")
 async def add_user(user: User):
     new_user = register_user(jsonable_encoder(user))
-    if(new_user == "Email already exists"):
+    if new_user == "Email already exists":
         return ErrorResponseModel("An error occurred", 404, "This email adress is already in use.")
     return ResponseModel(new_user, "User added successfully")
 
-@app.get("/user/{email}")
-async def get_one_user():
-    return 1
-#delete user
+@app.get("/user/{email}", response_description="Found user")
+async def get_one_user(email: str):
+    user = find_user(email)
+    if user:
+        return ResponseModel(user ,f"User with email {email} exists.")
+    return ErrorResponseModel("An error occurred", 404, f"There is no user registered with {email}.")
+
+@app.delete("/user/{email}", response_description="Delete user")
+async def delete_user(email: str):
+    deleted_user = remove_user(email)
+    if delete_user == True:
+        return ResponseModel(f"Deleted user with email {email}", "User removed successfully")
+    return ErrorResponseModel("An error occurred", 404, f"There is no user registered with {email}")
 
 #update user
 

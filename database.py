@@ -9,6 +9,7 @@ users_db = client.users
 users_collection = users_db.get_collection("users")
 
 #Run only once for setup
+
 #users_collection.create_index("email", unique=True)
 
 
@@ -27,6 +28,17 @@ def register_user(user) -> dict:
     except DuplicateKeyError:
         return "Email already exists"
     return user_helper(added_user)
+
+def find_user(email: str) -> dict:
+    user = users_collection.find_one({"email": email})
+    return user_helper(user)
+
+def remove_user(email: str):
+    user = users_collection.find_one({"email": email})
+    if user:
+        users_collection.delete_one({"email": email})
+        return True
+    return False
 
 
 def user_helper(user) -> dict:
