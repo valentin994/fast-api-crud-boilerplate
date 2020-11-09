@@ -19,6 +19,8 @@ Available routes:
 - [ ] Tokens
 - [ ] CRUD Operations for Users  <br> 1. ~~Create User~~ <br> 2. ~~Get All Users~~ <br> 3. ~~Find User by e-mail~~ <br> 4. ~~Delete User~~ <br> 5. Update User
 - [ ] API Testing
+- [ ] Deploy on HEROKU
+- [ ] Pagination
 - [x] MongoDB support
 
  
