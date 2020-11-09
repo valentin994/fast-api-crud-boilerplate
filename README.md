@@ -8,6 +8,7 @@ Other database support is planned.
 
 Available routes:
 
+- GET "/" -> Shows all available routes
 - GET "/user" -> Fetches all users from the database
 - POST "/user/" -> Register an user with unique email required
 
