@@ -40,6 +40,16 @@ def remove_user(email: str):
         return True
     return False
 
+def find_and_update_user(email: str, data: dict):
+    if len(data)<1:
+        return False
+    user = users_collection.find_one({"email": email})
+    if user or list(data.keys()):
+        return True
+    users_collection.update_one({"email": email},
+                                        {"$set": data})
+    return False
+
 
 def user_helper(user) -> dict:
     return {

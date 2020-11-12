@@ -7,7 +7,8 @@ from models import (User,
 from database import (get_all_users,
                       register_user,
                       find_user,
-                      remove_user)
+                      remove_user,
+                      find_and_update_user)
 from fastapi.responses import HTMLResponse
 
 app = FastAPI()
@@ -35,9 +36,10 @@ async def homepage():
                 <div class="container">
                     <ul class="list-group">
                         <li class="list-group-item list-group-item-success">GET "/user" -> Fetches all users from database</li>
-                        <li class="list-group-item list-group-item-success">POST "/user/" -> Registers a user, return 404 if user already exists</li>
+                        <li class="list-group-item list-group-item-primary">POST "/user/" -> Registers a user, return 404 if user already exists</li>
                         <li class="list-group-item list-group-item-success">GET "/user/{email}" -> Find user by email, if there is no registered user with that email return 404.</li>
-                        <li class="list-group-item list-group-item-success">DELETE "/user/{email}" -> Delete user by email, if there is no registered user with that email return 404.</li>
+                        <li class="list-group-item list-group-item-danger">DELETE "/user/{email}" -> Delete user by email, if there is no registered user with that email return 404.</li>
+                        <li class="list-group-item list-group-item-warning">PUT "/user/{email}" -> Updates user by email, if there is no registered user with that email return 404.</li>
                     </ul> 
                 </div>
             </div>
@@ -74,9 +76,12 @@ async def delete_user(email: str):
         return ResponseModel(f"Deleted user with email {email}", "User removed successfully")
     return ErrorResponseModel("An error occurred", 404, f"There is no user registered with {email}")
 
-#update user
-
-
+@app.put("/user/{email}", response_description="Updated user.")
+async def update_user(email: str, data: dict):
+    user = find_and_update_user(email, data)
+    if user:
+        return ResponseModel(f"Updated user {email}", f"Updated: {list(data.keys())}")
+    return ErrorResponseModel(f"Couldn't update user {email}", 404, "Check your email and fields.")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=5000, log_level="info", reload=True)

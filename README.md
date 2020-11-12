@@ -13,15 +13,17 @@ Available routes:
 - POST "/user/" -> Register an user with unique email required
 - GET "/user/{email}" -> Get user by email
 - DELETE "/user/{email}" -> Deletes user registered with email
+- PUT "/user/{email}" -> Updates user registered with email
 
 ## To-do:
-- [ ] User Login/Registration
 - [ ] Tokens
-- [ ] CRUD Operations for Users  <br> 1. ~~Create User~~ <br> 2. ~~Get All Users~~ <br> 3. ~~Find User by e-mail~~ <br> 4. ~~Delete User~~ <br> 5. Update User
-- [ ] API Testing
-- [ ] Deploy on HEROKU
+- [ ] Config File
+- [ ] User Login/Registration
 - [ ] Pagination
+- [ ] Deploy on HEROKU
 - [ ] Kafka
+- [ ] API Testing
+- [x] CRUD Operations for Users
 - [x] MongoDB support
 
  
