@@ -22,11 +22,11 @@ def get_all_users():
     return users
 
 def register_user(user) -> dict: 
-    try:   
-        new_user = users_collection.insert_one(user)
-        added_user = users_collection.find_one({"_id": new_user.inserted_id})
-    except DuplicateKeyError:
+  
+    if users_collection.find_one({"email": user["email"]}):
         return "Email already exists"
+    new_user = users_collection.insert_one(user)
+    added_user = users_collection.find_one({"_id": new_user.inserted_id})    
     return user_helper(added_user)
 
 def find_user(email: str) -> dict:

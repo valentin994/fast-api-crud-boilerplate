@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Body
+from fastapi import FastAPI, Body, Request, Depends
 import uvicorn
 from fastapi.encoders import jsonable_encoder
 from models import (User, 
@@ -9,9 +9,26 @@ from database import (get_all_users,
                       find_user,
                       remove_user,
                       find_and_update_user)
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi_jwt_auth import AuthJWT
+from fastapi_jwt_auth.exceptions import AuthJWTException
+from pydantic import BaseModel
 
 app = FastAPI()
+
+class Settings(BaseModel):
+    authjwt_secret_key: str = "secret"
+
+@AuthJWT.load_config
+def get_config():
+    return Settings()
+
+@app.exception_handler(AuthJWTException)
+def authjwt_exception_handler(request: Request, exc: AuthJWTException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.message}
+    )
 
 @app.get("/", response_class=HTMLResponse)
 async def homepage():
@@ -55,12 +72,14 @@ async def get_users():
         return ResponseModel(users, "Successfully fetched users")
     return ResponseModel(users, "There are no users in the database")
 
+#Todo Make the token go to session storage.
 @app.post("/user/", response_description="User registered")
-async def add_user(user: User):
+async def add_user(user: User, Authorize: AuthJWT = Depends()):
     new_user = register_user(jsonable_encoder(user))
     if new_user == "Email already exists":
         return ErrorResponseModel("An error occurred", 404, "This email adress is already in use.")
-    return ResponseModel(new_user, "User added successfully")
+    access_token = Authorize.create_access_token(subject=user.email)
+    return ResponseModel(new_user, "User added successfully", access_token)
 
 @app.get("/user/{email}", response_description="Found user")
 async def get_one_user(email: str):
