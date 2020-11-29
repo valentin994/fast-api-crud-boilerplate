@@ -92,7 +92,7 @@ async def get_one_user(email: str):
 @app.delete("/user/{email}", response_description="Delete user")
 async def delete_user(email: str):
     deleted_user = remove_user(email)
-    if delete_user == True:
+    if deleted_user == True:
         return ResponseModel(f"Deleted user with email {email}", "User removed successfully")
     return ErrorResponseModel("An error occurred", 404, f"There is no user registered with {email}")
 
