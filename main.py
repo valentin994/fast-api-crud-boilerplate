@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Body, Request, Depends
+from fastapi import FastAPI, Body, Request, Depends, Response
 import uvicorn
 from fastapi.encoders import jsonable_encoder
 from models import (User, 
@@ -74,12 +74,13 @@ async def get_users():
 
 #Todo Make the token go to session storage.
 @app.post("/user/", response_description="User registered")
-async def add_user(user: User, Authorize: AuthJWT = Depends()):
+async def add_user(user: User, response: Response, Authorize: AuthJWT = Depends()):
     new_user = register_user(jsonable_encoder(user))
     if new_user == "Email already exists":
         return ErrorResponseModel("An error occurred", 404, "This email adress is already in use.")
     access_token = Authorize.create_access_token(subject=user.email)
-    return ResponseModel(new_user, "User added successfully", access_token)
+    response.set_cookie(key="access_token", value=access_token)
+    return ResponseModel(new_user, "User added successfully")
 
 @app.get("/user/{email}", response_description="Found user")
 async def get_one_user(email: str):

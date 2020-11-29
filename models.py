@@ -17,16 +17,11 @@ class User(BaseModel):
 
 
 def ResponseModel(data, message, access_token=None):
-    response = {
+    return{
         "data": [data],
         "status_code": 200,
         "message": message,
     }
-    if access_token:
-        access_token={"access_token":access_token}
-        response.update(access_token)
-    return response
-
 
 def ErrorResponseModel(error, code, message):
     return {
