@@ -22,7 +22,7 @@ Available routes:
 - [ ] Pagination
 - [ ] Deploy on HEROKU
 - [ ] Kafka
-- [ ] API Testing
 - [ ] Redis
+- [x] API Testing
 - [x] CRUD Operations for Users
 - [x] MongoDB support
