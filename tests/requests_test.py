@@ -27,7 +27,7 @@ def test_api_try_to_create_same_user():
         "email": "johndoes@example.com",
         "password": "password123",
     }
-    r = requests.post("http://127.0.0.1:5000/user/", json=user)
+    r = requests.post("http://127.0.0.1:5000/register/", json=user)
     assert r.status_code == 400
 
 
