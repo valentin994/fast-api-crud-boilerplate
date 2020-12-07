@@ -1,7 +1,10 @@
 from fastapi import FastAPI, Request, Depends, Response, HTTPException
-import uvicorn
 from fastapi.encoders import jsonable_encoder
-from models import User, ResponseModel, ErrorResponseModel
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi_jwt_auth import AuthJWT
+from fastapi_jwt_auth.exceptions import AuthJWTException
+import uvicorn
+from models import User
 from database import (
     get_all_users,
     register_user,
@@ -9,9 +12,6 @@ from database import (
     remove_user,
     find_and_update_user,
 )
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi_jwt_auth import AuthJWT
-from fastapi_jwt_auth.exceptions import AuthJWTException
 from pydantic import BaseModel
 from typing import List
 
@@ -75,7 +75,7 @@ async def get_users():
     raise HTTPException(status_code=404, detail="Users not found")
 
 
-@app.post("/user/", response_description="User registered", response_model=User)
+@app.post("/register/", response_description="User registered", response_model=User)
 async def add_user(user: User, response: Response, Authorize: AuthJWT = Depends()):
     new_user = register_user(jsonable_encoder(user))
     if new_user:
@@ -83,6 +83,16 @@ async def add_user(user: User, response: Response, Authorize: AuthJWT = Depends(
         response.set_cookie(key="access_token", value=access_token)
         return user
     raise HTTPException(status_code=400, detail="Email already in use")
+
+
+@app.get("/login", response_model=User)
+async def login_user(Authorize: AuthJWT = Depends()):
+    Authorize.jwt_required()
+    email = Authorize.get_jwt_subject()
+    user = find_user(email)
+    if user:
+        return user
+    raise HTTPException(status_code=401, detail="Unauthorized")
 
 
 @app.get("/user/{email}", response_description="Found user", response_model=User)

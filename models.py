@@ -11,21 +11,6 @@ class User(BaseModel):
             "example": {
                 "name": "John Doe",
                 "email": "johndoes@example.com",
-                "password": "password"
+                "password": "password",
             }
         }
-
-
-def ResponseModel(data, message, access_token=None):
-    return{
-        "data": [data],
-        "status_code": 200,
-        "message": message,
-    }
-
-def ErrorResponseModel(error, code, message):
-    return {
-        "error": error,
-        "status_code": code,
-        "message": message
-    }

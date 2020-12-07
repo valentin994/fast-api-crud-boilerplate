@@ -16,9 +16,8 @@ Available routes:
 - PUT "/user/{email}" -> Updates user registered with email
 
 ## To-do:
-- [ ] Tokens
 - [ ] Config File
-- [ ] User Login/Registration
+- [ ] User Login/Registration with JWT
 - [ ] Pagination
 - [ ] Deploy on HEROKU
 - [ ] Kafka

@@ -10,9 +10,9 @@ def test_api_get_all_users_with_no_user_registered():
     assert r.status_code == 404
 
 
-def test_api_post_user():
+def test_api_register_user():
     user = {"name": "John Doe", "email": "johndoes@example.com", "password": "password"}
-    r = requests.post("http://127.0.0.1:5000/user/", json=user)
+    r = requests.post("http://127.0.0.1:5000/register/", json=user)
     assert r.status_code == 200
 
 
