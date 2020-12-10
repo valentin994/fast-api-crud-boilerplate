@@ -17,11 +17,12 @@ Available routes:
 
 ## To-do:
 - [ ] Config File
-- [ ] User Login/Registration with JWT
+- [ ] User Login/Registration with oAuth2
 - [ ] Pagination
 - [ ] Deploy on HEROKU
 - [ ] Kafka
 - [ ] Redis
+- [x] User Login/Registration with JWT
 - [x] API Testing
 - [x] CRUD Operations for Users
 - [x] MongoDB support

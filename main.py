@@ -34,6 +34,9 @@ app.add_middleware(
 
 class Settings(BaseModel):
     authjwt_secret_key: str = "secret"
+    authjwt_token_location: set = {"cookies"}
+    authjwt_cookie_secure: bool = False
+    authjwt_cookie_csrf_protect: bool = False
 
 
 @AuthJWT.load_config
@@ -89,18 +92,26 @@ async def get_users():
     raise HTTPException(status_code=404, detail="Users not found")
 
 
-@app.post("/register/", response_description="User registered", response_model=User)
+@app.post("/register/", response_description="User registered")
 async def add_user(user: User, response: Response, Authorize: AuthJWT = Depends()):
     new_user = register_user(jsonable_encoder(user))
     if new_user:
-        access_token = Authorize.create_access_token(subject=user.email)
-        response.set_cookie(key="access_token", value=access_token)
-        return user
+        return "Successfully registered"
     raise HTTPException(status_code=400, detail="Email already in use")
 
 
 @app.get("/login", response_model=User)
-async def login_user(Authorize: AuthJWT = Depends()):
+async def login_user(email, password):
+    user = find_user(email)
+    if user["password"] == password:
+        access_token = Authorize.create_access_token(subject=user.email)
+        Authorize.set_access_cookies(access_token)
+        return user
+    raise HTTPException(status_code=401, detail="Unauthorized")
+
+
+@app.get("/jwt_login", response_model=User)
+async def login_user(user: User, Authorize: AuthJWT = Depends()):
     Authorize.jwt_required()
     email = Authorize.get_jwt_subject()
     user = find_user(email)
