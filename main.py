@@ -15,6 +15,8 @@ from database import (
 from pydantic import BaseModel
 from typing import List
 from fastapi.middleware.cors import CORSMiddleware
+from passlib.hash import pbkdf2_sha256
+
 
 app = FastAPI()
 
@@ -94,6 +96,8 @@ async def get_users():
 
 @app.post("/register/", response_description="User registered")
 async def add_user(user: User, response: Response, Authorize: AuthJWT = Depends()):
+    user.password = pbkdf2_sha256.hash(user.password.get_secret_value())
+    print(jsonable_encoder(user))
     new_user = register_user(jsonable_encoder(user))
     if new_user:
         return "Successfully registered"
@@ -101,10 +105,11 @@ async def add_user(user: User, response: Response, Authorize: AuthJWT = Depends(
 
 
 @app.get("/login", response_model=User)
-async def login_user(email, password):
+async def login_user(email, password, Authorize: AuthJWT = Depends()):
     user = find_user(email)
-    if user["password"] == password:
-        access_token = Authorize.create_access_token(subject=user.email)
+    print(user)
+    if pbkdf2_sha256.verify(password, user["password"]):
+        access_token = Authorize.create_access_token(subject=user["email"])
         Authorize.set_access_cookies(access_token)
         return user
     raise HTTPException(status_code=401, detail="Unauthorized")

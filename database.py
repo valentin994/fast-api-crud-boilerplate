@@ -3,6 +3,7 @@ from bson.objectid import ObjectId
 from models import User
 from pymongo.errors import DuplicateKeyError
 
+
 client = MongoClient("mongodb://localhost:27017")
 
 users_db = client.users
@@ -23,7 +24,7 @@ def get_all_users():
     return users
 
 
-def register_user(user) -> dict:
+def register_user(user: dict) -> dict:
     if users_collection.find_one({"email": user["email"]}):
         return False
     new_user = users_collection.insert_one(user)
@@ -33,7 +34,7 @@ def register_user(user) -> dict:
 
 def find_user(email: str) -> dict:
     user = users_collection.find_one({"email": email})
-    return user_helper(user)
+    return user
 
 
 def remove_user(email: str):
