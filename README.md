@@ -17,6 +17,7 @@ Available routes:
 
 ## To-do:
 - [ ] Config File
+- [ ] Change to motorio for db
 - [ ] User Login/Registration with oAuth2
 - [ ] Pagination
 - [ ] Deploy on HEROKU

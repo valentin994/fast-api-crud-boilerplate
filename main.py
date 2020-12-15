@@ -97,18 +97,16 @@ async def get_users():
 @app.post("/register/", response_description="User registered")
 async def add_user(user: User, response: Response, Authorize: AuthJWT = Depends()):
     user.password = pbkdf2_sha256.hash(user.password.get_secret_value())
-    print(jsonable_encoder(user))
     new_user = register_user(jsonable_encoder(user))
     if new_user:
         return "Successfully registered"
     raise HTTPException(status_code=400, detail="Email already in use")
 
 
-@app.get("/login", response_model=User)
-async def login_user(email, password, Authorize: AuthJWT = Depends()):
-    user = find_user(email)
-    print(user)
-    if pbkdf2_sha256.verify(password, user["password"]):
+@app.post("/login/", response_model=User)
+async def login_user(login: dict, Authorize: AuthJWT = Depends()):
+    user = find_user(login["email"])
+    if pbkdf2_sha256.verify(login["password"], user["password"]):
         access_token = Authorize.create_access_token(subject=user["email"])
         Authorize.set_access_cookies(access_token)
         return user
