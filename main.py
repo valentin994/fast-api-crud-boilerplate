@@ -59,18 +59,27 @@ async def get_users():
     raise HTTPException(status_code=404, detail="Users not found")
 
 
-@app.post("/register/", response_description="User registered")
-async def add_user(user: User, response: Response, Authorize: AuthJWT = Depends()):
+@app.post(
+    "/register/",
+    response_description="User registered",
+    response_model=User,
+    response_model_exclude={"password"},
+)
+async def add_user(
+    user: User,
+    response: Response,
+    Authorize: AuthJWT = Depends(),
+):
     user.password = pbkdf2_sha256.hash(user.password.get_secret_value())
-    new_user = register_user(jsonable_encoder(user))
+    new_user = await register_user(user.dict())
     if new_user:
-        return "Successfully registered"
+        return user
     raise HTTPException(status_code=400, detail="Email already in use")
 
 
-@app.post("/login/", response_model=User)
+@app.post("/login/", response_model=User, response_model_exclude={"password"})
 async def login_user(login: dict, Authorize: AuthJWT = Depends()):
-    user = find_user(login["email"])
+    user = await find_user(login["email"])
     if pbkdf2_sha256.verify(login["password"], user["password"]):
         access_token = Authorize.create_access_token(subject=user["email"])
         Authorize.set_access_cookies(access_token)
@@ -78,11 +87,12 @@ async def login_user(login: dict, Authorize: AuthJWT = Depends()):
     raise HTTPException(status_code=401, detail="Unauthorized")
 
 
-@app.get("/jwt_login", response_model=User)
-async def login_user(user: User, Authorize: AuthJWT = Depends()):
+@app.get("/jwt_login", response_model=User, response_model_exclude={"password"})
+async def login_user(Authorize: AuthJWT = Depends()):
     Authorize.jwt_required()
     email = Authorize.get_jwt_subject()
-    user = find_user(email)
+    user = await find_user(email)
+    print(user)
     if user:
         return user
     raise HTTPException(status_code=401, detail="Unauthorized")

@@ -5,6 +5,10 @@ from pymongo.errors import DuplicateKeyError
 import motor.motor_asyncio
 from typing import List
 
+import collections  # From Python standard library.
+import bson
+from bson.codec_options import CodecOptions
+
 client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://localhost:27017")
 
 
@@ -26,18 +30,19 @@ async def get_all_users() -> List[User]:
     return response
 
 
-async def register_user(user: dict) -> User:
-    user = await users_collection.find_one({"email": user["email"]})
-    if user:
-        return False
-    new_user = await users_collection.insert_one(user)
-    added_user = await users_collection.find_one({"_id": new_user.inserted_id})
-    return user
+async def register_user(data: dict) -> User:
+    user = await users_collection.find_one({"email": data["email"]})
+    print(data)
+    if user is None:
+        new_user = await users_collection.insert_one(data)
+        response = await users_collection.find_one({"_id": new_user.inserted_id})
+        return data
+    return False
 
 
-def find_user(email: str) -> dict:
-    user = users_collection.find_one({"email": email})
-    return user
+async def find_user(email: str) -> User:
+    response = await users_collection.find_one({"email": email})
+    return response
 
 
 def remove_user(email: str):
