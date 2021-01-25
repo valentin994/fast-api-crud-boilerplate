@@ -2,12 +2,14 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 from models import User
 from pymongo.errors import DuplicateKeyError
+import motor.motor_asyncio
+from typing import List
 
+client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://localhost:27017")
 
-client = MongoClient("mongodb://localhost:27017")
 
 users_db = client.users
-users_collection = users_db.get_collection("users")
+users_collection = users_db.users
 
 # Run only once for setup
 
@@ -17,19 +19,20 @@ users_collection = users_db.get_collection("users")
 # User DB CRUD Operations
 
 
-def get_all_users():
-    users = []
-    for user in users_collection.find():
-        users.append(user_helper(user))
-    return users
+async def get_all_users() -> List[User]:
+    cursor = users_collection.find({})
+    data = await cursor.to_list(length=1000)
+    response = [user for user in data]
+    return response
 
 
-def register_user(user: dict) -> dict:
-    if users_collection.find_one({"email": user["email"]}):
+async def register_user(user: dict) -> User:
+    user = await users_collection.find_one({"email": user["email"]})
+    if user:
         return False
-    new_user = users_collection.insert_one(user)
-    added_user = users_collection.find_one({"_id": new_user.inserted_id})
-    return user_helper(added_user)
+    new_user = await users_collection.insert_one(user)
+    added_user = await users_collection.find_one({"_id": new_user.inserted_id})
+    return user
 
 
 def find_user(email: str) -> dict:
