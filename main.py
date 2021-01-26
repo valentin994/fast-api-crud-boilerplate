@@ -1,9 +1,7 @@
 from fastapi import FastAPI, Request, Depends, Response, HTTPException
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
 from fastapi_jwt_auth.exceptions import AuthJWTException
-import uvicorn
 from models import User
 from database import (
     get_all_users,

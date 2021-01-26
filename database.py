@@ -1,13 +1,6 @@
-from pymongo import MongoClient
-from bson.objectid import ObjectId
 from models import User
-from pymongo.errors import DuplicateKeyError
 import motor.motor_asyncio
 from typing import List
-
-import collections  # From Python standard library.
-import bson
-from bson.codec_options import CodecOptions
 
 client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://localhost:27017")
 
@@ -32,11 +25,10 @@ async def get_all_users() -> List[User]:
 
 async def register_user(data: dict) -> User:
     user = await users_collection.find_one({"email": data["email"]})
-    print(data)
     if user is None:
         new_user = await users_collection.insert_one(data)
         response = await users_collection.find_one({"_id": new_user.inserted_id})
-        return data
+        return response
     return False
 
 
