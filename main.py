@@ -52,7 +52,7 @@ def authjwt_exception_handler(request: Request, exc: AuthJWTException):
 
 
 @app.get("/user", response_description="Users fetched", response_model=List[User])
-async def get_users():
+async def get_users() -> List[User]:
     response = await get_all_users()
     if response:
         return response
@@ -69,7 +69,7 @@ async def add_user(
     user: User,
     response: Response,
     Authorize: AuthJWT = Depends(),
-):
+) -> User:
     user.password = pbkdf2_sha256.hash(user.password.get_secret_value())
     new_user = await register_user(user.dict())
     if new_user:
@@ -78,7 +78,7 @@ async def add_user(
 
 
 @app.post("/login/", response_model=User, response_model_exclude={"password"})
-async def login_user(login: dict, Authorize: AuthJWT = Depends()):
+async def login_user(login: dict, Authorize: AuthJWT = Depends()) -> User:
     user = await find_user(login["email"])
     if pbkdf2_sha256.verify(login["password"], user["password"]):
         access_token = Authorize.create_access_token(subject=user["email"])
@@ -88,35 +88,44 @@ async def login_user(login: dict, Authorize: AuthJWT = Depends()):
 
 
 @app.get("/jwt_login", response_model=User, response_model_exclude={"password"})
-async def login_user(Authorize: AuthJWT = Depends()):
+async def login_user(Authorize: AuthJWT = Depends()) -> User:
     Authorize.jwt_required()
     email = Authorize.get_jwt_subject()
     user = await find_user(email)
-    print(user)
     if user:
         return user
     raise HTTPException(status_code=401, detail="Unauthorized")
 
 
-@app.get("/user/{email}", response_description="Found user", response_model=User)
-async def get_one_user(email: str):
-    user = find_user(email)
+@app.get(
+    "/user/{email}",
+    response_description="Found user",
+    response_model=User,
+    response_model_exclude={"password"},
+)
+async def get_one_user(email: str) -> User:
+    user = await find_user(email)
     if user:
         return user
     return HTTPException(status_code=404, detail="User was not found")
 
 
 @app.delete("/user/{email}", response_description="Delete user")
-async def delete_user(email: str):
+async def delete_user(email: str) -> str:
     deleted_user = remove_user(email)
     if deleted_user:
         return "User deleted successfully"
     raise HTTPException(status_code=404, detail="User not found")
 
 
-@app.put("/user/{email}", response_description="Updated user.", response_model=User)
-async def update_user(email: str, data: dict):
-    user = find_and_update_user(email, data)
+@app.put(
+    "/user/{email}",
+    response_description="Updated user.",
+    response_model=User,
+    response_model_exclude={"password"},
+)
+async def update_user(email: str, data: dict) -> User:
+    user = await find_and_update_user(email, data)
     if user:
         return user
     raise HTTPException(status_code=404, detail="User not found")

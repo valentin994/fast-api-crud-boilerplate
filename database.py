@@ -45,28 +45,19 @@ async def find_user(email: str) -> User:
     return response
 
 
-def remove_user(email: str):
-    user = users_collection.find_one({"email": email})
+async def remove_user(email: str) -> bool:
+    user = await users_collection.find_one({"email": email})
     if user:
-        users_collection.delete_one({"email": email})
+        await users_collection.delete_one({"email": email})
         return True
     return False
 
 
-def find_and_update_user(email: str, data: dict):
+async def find_and_update_user(email: str, data: dict) -> User:
     if len(data) < 1:
         return False
-    user = users_collection.find_one({"email": email})
+    user = await users_collection.find_one({"email": email})
     if user or list(data.keys()):
-        users_collection.update_one({"email": email}, {"$set": data})
-        return users_collection.find_one({"email": email})
+        await users_collection.update_one({"email": email}, {"$set": data})
+        return await users_collection.find_one({"email": email})
     return False
-
-
-def user_helper(user) -> dict:
-    return {
-        "id": str(user["_id"]),
-        "name": user["name"],
-        "email": user["email"],
-        "password": user["password"],
-    }
