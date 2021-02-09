@@ -14,7 +14,9 @@ from pydantic import BaseModel
 from typing import List
 from fastapi.middleware.cors import CORSMiddleware
 from passlib.hash import pbkdf2_sha256
-
+from kafka import KafkaConsumer
+import asyncio
+import aiokafka
 
 app = FastAPI()
 
@@ -37,6 +39,40 @@ class Settings(BaseModel):
     authjwt_token_location: set = {"cookies"}
     authjwt_cookie_secure: bool = False
     authjwt_cookie_csrf_protect: bool = False
+
+
+# loop = asyncio.get_event_loop()
+# aioproducer = aiokafka.AIOKafkaProducer(loop=loop, bootstrap_servers="localhost:9092")
+
+
+# @app.on_event("startup")
+# async def startup_event():
+#     await aioproducer.start()
+
+
+# @app.on_event("shutdown")
+# async def shutdown_event():
+#     await aioproducer.stop()
+
+
+async def consume():
+    consumer = aiokafka.AIOKafkaConsumer(
+        "quickstart-events",
+        loop=asyncio.get_running_loop(),
+        bootstrap_servers="localhost:9092",
+    )
+    await consumer.start()
+    async for msg in consumer:
+        print(
+            "{}:{:d}:{:d}: key={} value={} timestamp_ms={}".format(
+                msg.topic, msg.partition, msg.offset, msg.key, msg.value, msg.timestamp
+            )
+        )
+
+
+@app.on_event("startup")
+async def app_startup():
+    asyncio.create_task(consume())
 
 
 @AuthJWT.load_config
