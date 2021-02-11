@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Depends, Response, HTTPException
+from fastapi import FastAPI, Request, Depends, Response, HTTPException, WebSocket
 from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
 from fastapi_jwt_auth.exceptions import AuthJWTException
@@ -68,6 +68,16 @@ async def consume():
                 msg.topic, msg.partition, msg.offset, msg.key, msg.value, msg.timestamp
             )
         )
+
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    print("hello")
+    await websocket.accept()
+    while True:
+        data = await websocket.receive_text()
+        print(data)
+        await websocket.send_text(f"Message was: {data}")
 
 
 @app.on_event("startup")
