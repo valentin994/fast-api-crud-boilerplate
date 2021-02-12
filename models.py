@@ -1,6 +1,12 @@
 from pydantic import BaseModel, SecretStr, EmailStr, Field
 
 
+class Message(BaseModel):
+    sender: str = Field(...)
+    sent_to: str = Field(...)
+    message: str = Field(...)
+
+
 class User(BaseModel):
     name: str = Field(...)
     email: EmailStr = Field(...)

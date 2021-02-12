@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, Depends, Response, HTTPException, WebSocke
 from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
 from fastapi_jwt_auth.exceptions import AuthJWTException
-from models import User
+from models import User, Message
 from database import (
     get_all_users,
     register_user,
@@ -41,13 +41,10 @@ class Settings(BaseModel):
     authjwt_cookie_csrf_protect: bool = False
 
 
-async def kafka_produce():
-    producer = AIOKafkaProducer(bootstrap_servers="localhost:9092")
-    await producer.start()
-    while True:
-        data = await websocket.receive_text()
-        if data:
-            await producer.send_and_wait("quickstart-events", b"hello")
+# async def kafka_produce(message: str):
+#     producer = AIOKafkaProducer(bootstrap_servers="localhost:9092")
+#     await producer.start()
+#     await producer.send_and_wait("quickstart-events", b"hello")
 
 
 async def kafka_consume(websocket: WebSocket):
@@ -66,8 +63,16 @@ async def websocket_endpoint(websocket: WebSocket):
     await kafka_consume(websocket)
 
 
-# @app.post("/send_message")
-# async def send_msg(message: str, sender: str):
+@app.post("/send_message/")
+async def send_msg(message: Message):
+    producer = AIOKafkaProducer(bootstrap_servers="localhost:9092")
+    await producer.start()
+    try:
+        await producer.send_and_wait("quickstart-events", b"hello")
+    finally:
+        await producer.stop()
+    return 200
+    # return message
 
 
 @AuthJWT.load_config
