@@ -14,9 +14,9 @@ from pydantic import BaseModel
 from typing import List
 from fastapi.middleware.cors import CORSMiddleware
 from passlib.hash import pbkdf2_sha256
-from kafka import KafkaConsumer
+from kafka import KafkaConsumer, KafkaProducer
 import asyncio
-import aiokafka
+from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 
 app = FastAPI()
 
@@ -41,48 +41,33 @@ class Settings(BaseModel):
     authjwt_cookie_csrf_protect: bool = False
 
 
-# loop = asyncio.get_event_loop()
-# aioproducer = aiokafka.AIOKafkaProducer(loop=loop, bootstrap_servers="localhost:9092")
+async def kafka_produce():
+    producer = AIOKafkaProducer(bootstrap_servers="localhost:9092")
+    await producer.start()
+    while True:
+        data = await websocket.receive_text()
+        if data:
+            await producer.send_and_wait("quickstart-events", b"hello")
 
 
-# @app.on_event("startup")
-# async def startup_event():
-#     await aioproducer.start()
-
-
-# @app.on_event("shutdown")
-# async def shutdown_event():
-#     await aioproducer.stop()
-
-
-async def consume():
-    consumer = aiokafka.AIOKafkaConsumer(
+async def kafka_consume(websocket: WebSocket):
+    consumer = AIOKafkaConsumer(
         "quickstart-events",
-        loop=asyncio.get_running_loop(),
         bootstrap_servers="localhost:9092",
     )
     await consumer.start()
     async for msg in consumer:
-        print(
-            "{}:{:d}:{:d}: key={} value={} timestamp_ms={}".format(
-                msg.topic, msg.partition, msg.offset, msg.key, msg.value, msg.timestamp
-            )
-        )
+        await websocket.send_text("hello")
 
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    print("hello")
     await websocket.accept()
-    while True:
-        data = await websocket.receive_text()
-        print(data)
-        await websocket.send_text(f"Message was: {data}")
+    await kafka_consume(websocket)
 
 
-@app.on_event("startup")
-async def app_startup():
-    asyncio.create_task(consume())
+# @app.post("/send_message")
+# async def send_msg(message: str, sender: str):
 
 
 @AuthJWT.load_config
