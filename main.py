@@ -17,6 +17,7 @@ from passlib.hash import pbkdf2_sha256
 from kafka import KafkaConsumer, KafkaProducer
 import asyncio
 from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
+from kafka_producer import send_one
 
 app = FastAPI()
 
@@ -41,20 +42,17 @@ class Settings(BaseModel):
     authjwt_cookie_csrf_protect: bool = False
 
 
-# async def kafka_produce(message: str):
-#     producer = AIOKafkaProducer(bootstrap_servers="localhost:9092")
-#     await producer.start()
-#     await producer.send_and_wait("quickstart-events", b"hello")
-
-
 async def kafka_consume(websocket: WebSocket):
     consumer = AIOKafkaConsumer(
         "quickstart-events",
         bootstrap_servers="localhost:9092",
     )
     await consumer.start()
-    async for msg in consumer:
-        await websocket.send_text("hello")
+    try:
+        async for msg in consumer:
+            await websocket.send_text(msg.value.decode("utf-8"))
+    finally:
+        await consumer.stop()
 
 
 @app.websocket("/ws")
@@ -64,15 +62,9 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 @app.post("/send_message/")
-async def send_msg(message: Message):
-    producer = AIOKafkaProducer(bootstrap_servers="localhost:9092")
-    await producer.start()
-    try:
-        await producer.send_and_wait("quickstart-events", b"hello")
-    finally:
-        await producer.stop()
+async def send_msg(message: dict):
+    await send_one(message)
     return 200
-    # return message
 
 
 @AuthJWT.load_config
