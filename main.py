@@ -129,14 +129,7 @@ async def login_user(
     user = await find_user(login["email"])
     if pbkdf2_sha256.verify(login["password"], user["password"]):
         access_token = Authorize.create_access_token(subject=user["email"])
-        response.set_cookie(
-            key="random_key",
-            value="random_value",
-            expires=None,
-            samesite="strict",
-            httponly=True,
-        )
-        # Authorize.set_access_cookies(access_token)
+        Authorize.set_access_cookies(access_token)
         return user
     raise HTTPException(status_code=401, detail="Unauthorized")
 
