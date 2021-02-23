@@ -18,6 +18,7 @@ from kafka import KafkaConsumer, KafkaProducer
 import asyncio
 from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 from kafka_producer import send_one
+from pymongo import MongoClient
 
 app = FastAPI()
 
@@ -43,6 +44,11 @@ class Settings(BaseModel):
 
 
 async def kafka_consume(websocket: WebSocket):
+    """Consumer for websocket to stream to the frontend, connecting on default kafka consumer (has to be up and running for it to work)
+
+    Args:
+        websocket (WebSocket): websocket for clients to connect to
+    """
     consumer = AIOKafkaConsumer(
         "quickstart-events",
         bootstrap_servers="localhost:9092",
@@ -57,12 +63,25 @@ async def kafka_consume(websocket: WebSocket):
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
+    """This websocket is used for broadcasting messages from kafka stream
+
+    Args:
+        websocket (WebSocket): websocket for clients to connect to
+    """
     await websocket.accept()
     await kafka_consume(websocket)
 
 
 @app.post("/send_message/")
 async def send_msg(message: dict):
+    """Endpoint for users to send messages, messages from client have to have sender, destination and message as data parameter.
+
+    Args:
+        message (dict): message model for kafka producer to send a message
+
+    Returns:
+        [int]: 200 if successful
+    """
     await send_one(message)
     return 200
 
@@ -104,17 +123,26 @@ async def add_user(
 
 
 @app.post("/login/", response_model=User, response_model_exclude={"password"})
-async def login_user(login: dict, Authorize: AuthJWT = Depends()) -> User:
+async def login_user(
+    login: dict, response: Response, Authorize: AuthJWT = Depends()
+) -> User:
     user = await find_user(login["email"])
     if pbkdf2_sha256.verify(login["password"], user["password"]):
         access_token = Authorize.create_access_token(subject=user["email"])
-        Authorize.set_access_cookies(access_token)
+        response.set_cookie(
+            key="random_key",
+            value="random_value",
+            expires=None,
+            samesite="strict",
+            httponly=True,
+        )
+        # Authorize.set_access_cookies(access_token)
         return user
     raise HTTPException(status_code=401, detail="Unauthorized")
 
 
 @app.get("/jwt_login", response_model=User, response_model_exclude={"password"})
-async def login_user(Authorize: AuthJWT = Depends()) -> User:
+async def jwt_login_user(Authorize: AuthJWT = Depends()) -> User:
     Authorize.jwt_required()
     email = Authorize.get_jwt_subject()
     user = await find_user(email)
