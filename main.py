@@ -98,6 +98,14 @@ def authjwt_exception_handler(request: Request, exc: AuthJWTException):
 
 @app.get("/user", response_description="Users fetched", response_model=List[User])
 async def get_users() -> List[User]:
+    """Get all users in database
+
+    Raises:
+        HTTPException: If there are no users return 404
+
+    Returns:
+        List[User]: List of users stored in database
+    """
     response = await get_all_users()
     if response:
         return response
@@ -115,6 +123,20 @@ async def add_user(
     response: Response,
     Authorize: AuthJWT = Depends(),
 ) -> User:
+    """Register new user. User model defined in models, all fields are mandatory.
+    Password is hashed.
+
+    Args:
+        user (User): User model(name, password, email)
+        response (Response): Returns user without password
+        Authorize (AuthJWT, optional): [description]. Defaults to Depends().
+
+    Raises:
+        HTTPException: If user already exists with the email raise 400 http exception
+
+    Returns:
+        User: User model without password
+    """
     user.password = pbkdf2_sha256.hash(user.password.get_secret_value())
     new_user = await register_user(user.dict())
     if new_user:
@@ -126,6 +148,19 @@ async def add_user(
 async def login_user(
     login: dict, response: Response, Authorize: AuthJWT = Depends()
 ) -> User:
+    """Login user and set access token for next requests. Token is built from email.
+
+    Args:
+        login (dict): Login information, email & password
+        response (Response): Return user without password
+        Authorize (AuthJWT, optional): Set jwt
+
+    Raises:
+        HTTPException: If wrong info is given raise 401
+
+    Returns:
+        User: Name & email, set access token
+    """
     user = await find_user(login["email"])
     if pbkdf2_sha256.verify(login["password"], user["password"]):
         access_token = Authorize.create_access_token(subject=user["email"])
@@ -136,6 +171,17 @@ async def login_user(
 
 @app.get("/jwt_login", response_model=User, response_model_exclude={"password"})
 async def jwt_login_user(Authorize: AuthJWT = Depends()) -> User:
+    """Login via JWT
+
+    Args:
+        Authorize (AuthJWT, optional): Token to login with, decrypts to email
+
+    Raises:
+        HTTPException: IF token is not valid return 401
+
+    Returns:
+        User: Name & mail
+    """
     Authorize.jwt_required()
     email = Authorize.get_jwt_subject()
     user = await find_user(email)
@@ -151,10 +197,21 @@ async def jwt_login_user(Authorize: AuthJWT = Depends()) -> User:
     response_model_exclude={"password"},
 )
 async def get_one_user(email: str) -> User:
+    """Find user by email
+
+    Args:
+        email (str): user email
+
+    Raises:
+        HTTPException: If there are no users return 404
+
+    Returns:
+        User: Name & email
+    """
     user = await find_user(email)
     if user:
         return user
-    return HTTPException(status_code=404, detail="User was not found")
+    raise HTTPException(status_code=404, detail="User was not found")
 
 
 @app.delete("/user/{email}", response_description="Delete user")
