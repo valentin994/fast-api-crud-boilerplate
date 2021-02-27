@@ -121,7 +121,6 @@ async def get_users() -> List[User]:
 async def add_user(
     user: User,
     response: Response,
-    Authorize: AuthJWT = Depends(),
 ) -> User:
     """Register new user. User model defined in models, all fields are mandatory.
     Password is hashed.
@@ -216,6 +215,17 @@ async def get_one_user(email: str) -> User:
 
 @app.delete("/user/{email}", response_description="Delete user")
 async def delete_user(email: str) -> str:
+    """Remove user entry in db
+
+    Args:
+        email (str): email of user to be removed
+
+    Raises:
+        HTTPException: 404 if user does not exist
+
+    Returns:
+        str: Confirmation message
+    """
     deleted_user = remove_user(email)
     if deleted_user:
         return "User deleted successfully"
@@ -229,6 +239,18 @@ async def delete_user(email: str) -> str:
     response_model_exclude={"password"},
 )
 async def update_user(email: str, data: dict) -> User:
+    """Update user entry
+
+    Args:
+        email (str): email of user to be updated
+        data (dict): data that should be updated
+
+    Raises:
+        HTTPException: 404 if user is not found
+
+    Returns:
+        User: New updated user
+    """
     user = await find_and_update_user(email, data)
     if user:
         return user
