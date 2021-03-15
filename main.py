@@ -2,13 +2,15 @@ from fastapi import FastAPI, Request, Depends, Response, HTTPException, WebSocke
 from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
 from fastapi_jwt_auth.exceptions import AuthJWTException
-from models import User, Message
+from models import User, Message, Posts
 from database import (
     get_all_users,
     register_user,
     find_user,
     remove_user,
     find_and_update_user,
+    create_post,
+    fetch_posts,
 )
 from pydantic import BaseModel
 from typing import List
@@ -255,3 +257,15 @@ async def update_user(email: str, data: dict) -> User:
     if user:
         return user
     raise HTTPException(status_code=404, detail="User not found")
+
+
+@app.post("/posts/", response_model=Posts)
+async def add_post(data: dict) -> Posts:
+    post = await create_post(data)
+    return post
+
+
+@app.get("/posts", response_model=List[Posts])
+async def get_posts() -> List[Posts]:
+    response = await fetch_posts()
+    return response

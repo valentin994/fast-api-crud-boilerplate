@@ -7,6 +7,13 @@ class Message(BaseModel):
     message: str = Field(...)
 
 
+class Posts(BaseModel):
+    title: str
+    text: str
+    label: str
+    author: str
+
+
 class User(BaseModel):
     name: str = Field(...)
     email: EmailStr = Field(...)

@@ -1,4 +1,4 @@
-from models import User
+from models import User, Posts
 import motor.motor_asyncio
 from typing import List
 
@@ -7,6 +7,9 @@ client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://localhost:27017")
 
 users_db = client.users
 users_collection = users_db.users
+
+posts_db = client.posts
+posts_collection = posts_db.posts
 
 # Run only once for setup
 
@@ -91,3 +94,29 @@ async def find_and_update_user(email: str, data: dict) -> User:
         await users_collection.update_one({"email": email}, {"$set": data})
         return await users_collection.find_one({"email": email})
     return False
+
+
+async def create_post(data: dict) -> dict:
+    """Create post with title, text, label and author
+
+    Args:
+        data (dict): Data to create post with
+
+    Returns:
+        dict: DB entry of that inserted post
+    """
+    post = await posts_collection.insert_one(data)
+    response = await posts_collection.find_one({"_id": post.inserted_id})
+    return response
+
+
+# Todo Get posts
+async def fetch_posts():
+    cursor = posts_collection.find({})
+    data = await cursor.to_list(length=1000)
+    response = [post for post in data]
+    return response
+
+
+# Todo Update post
+# Todo Delete post
